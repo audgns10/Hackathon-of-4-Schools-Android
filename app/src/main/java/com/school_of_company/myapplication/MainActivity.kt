@@ -110,9 +110,7 @@ class MainActivity : ComponentActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // 권한이 허용됨
             } else {
-                // 권한이 거부됨
                 Toast.makeText(this, "카메라 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
             }
         }
@@ -134,7 +132,7 @@ fun Greeting() {
 
     val sharedPreferences = remember {
         context.getSharedPreferences(
-            "MyPrefs", // Replace with your preferred name
+            "MyPrefs",
             Context.MODE_PRIVATE
         )
     }
@@ -143,7 +141,6 @@ fun Greeting() {
         rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { takenPhoto ->
             if (takenPhoto != null) {
                 val imageUri = takenPhoto.toUri(context)
-                // 이후 처리 로직
                 selectedImageUri = imageUri
             }
         }
@@ -153,11 +150,9 @@ fun Greeting() {
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            // 권한이 허용된 경우
             takePhotoFromCameraLauncher.launch()
             upLoadTextState.value = false
         } else {
-            // 권한이 거부된 경우
             Toast.makeText(context, "카메라 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
         }
     }
@@ -335,8 +330,8 @@ fun PhotismButton(
 }
 
 private fun generateAndShowQRCode(context: Context, selectedImageUri: Uri?) {
-    val imageUri = selectedImageUri?.toString() ?: ""  // URI를 문자열로 변환하여 QR 코드에 포함
-    val qrCodeBitmap = encodeAsBitmap(imageUri)       // Base64 인코딩 대신 URI 사용
+    val imageUri = selectedImageUri?.toString() ?: ""
+    val qrCodeBitmap = encodeAsBitmap(imageUri)
 
     // QR 코드 다이얼로그 표시
     val dialog = AlertDialog.Builder(context)
@@ -399,7 +394,7 @@ interface ApiService {
 }
 
 object ApiClient {
-    private const val BASE_URL = "https://d7a9-118-42-115-46.ngrok-free.app/" // 서버 URL로 변경하세요.
+    private const val BASE_URL = "https://d7a9-118-42-115-46.ngrok-free.app/"
 
     val instance: Retrofit by lazy {
         Retrofit.Builder()
@@ -418,20 +413,17 @@ fun uploadImage(context: Context, imageUri: Uri?) {
     val apiService = ApiClient.instance.create(ApiService::class.java)
 
     try {
-        // Uri를 InputStream으로 변환
         val inputStream: InputStream? = context.contentResolver.openInputStream(imageUri)
         val requestBody = inputStream?.let { input ->
             val bytes = input.readBytes()
             RequestBody.create("image/*".toMediaTypeOrNull(), bytes)
         }
 
-        // InputStream으로 만든 RequestBody를 MultipartBody.Part로 변환
         val body = requestBody?.let { reqBody ->
             MultipartBody.Part.createFormData("image", "uploaded_image.jpg", reqBody)
         }
 
         if (body != null) {
-            // 이미지 업로드 요청 전송
             val call = apiService.uploadImage(body)
             call.enqueue(object : Callback<ResponseBody> {
                 override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
